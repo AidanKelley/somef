@@ -20,6 +20,7 @@ import pprint
 import pandas as pd
 import numpy as np
 import re
+from .configuration import get_config
 
 from somef.data_to_graph import DataGraph
 
@@ -329,14 +330,7 @@ def save_json(git_data, repo_data, outfile):
 
 
 def cli_get_data(threshold, repo_url=None, doc_src=None):
-    credentials_file = Path(
-        os.getenv("SOMEF_CONFIGURATION_FILE", '~/.somef/config.json')
-    ).expanduser()
-    if credentials_file.exists():
-        with credentials_file.open("r") as fh:
-            file_paths = json.load(fh)
-    else:
-        sys.exit("Error: Please provide a config.json file.")
+    file_paths = get_config()
     header = {}
     if 'Authorization' in file_paths.keys():
         header['Authorization'] = file_paths['Authorization']
@@ -363,6 +357,66 @@ def cli_get_data(threshold, repo_url=None, doc_src=None):
     return format_output(github_data, predictions)
 
 
+def get_zenodo_data(query):
+    config = get_config()
+    if not ("zenodo_auth" in config and len(config["zenodo_auth"]) > 0):
+        exit("must supply a zenodo authentication toke using somef_configure")
+    zenodo_api_base = 'https://zenodo.org/api'
+    zenodo_access_token = config["zenodo_auth"]
+    query_size = 10
+    index = 0
+    # initialize it big enough to run once
+    total_count = query_size + 1
+
+    output_results = {}
+
+    while query_size * index < total_count:
+        response = requests.get(
+            f"{zenodo_api_base}/records",
+            params={
+                'q': query,
+                'size': query_size,
+                'type': 'software',
+                'page': index + 1,
+                'access_token': zenodo_access_token
+            }
+        )
+        data_out = response.json()
+        print(data_out["links"])
+
+        results = data_out["hits"]["hits"]
+        total_count = data_out["hits"]["total"]
+
+        def get_github_url(result):
+            try:
+                metadata = result['metadata']
+                assert('related_identifiers' in metadata)
+                related_identifiers = metadata['related_identifiers']
+                for identifier in related_identifiers:
+                    if identifier['relation'] == 'isSupplementTo':
+                        github_base_url = 'https://github.com/'
+                        github_url = identifier['identifier']
+                        assert(github_base_url in github_url)
+                        # now, process the URL
+                        _, _, path = github_url.partition(github_base_url)
+                        path_components = path.split('/', 2)
+
+                        return github_base_url + "/".join(path_components[:2])
+            except AssertionError:
+                pass
+
+            return None
+
+        processed_results = ((result, get_github_url(result)) for result in results)
+        output_results.update({result["id"]: {"github_url": github_url, "zenodo_data": result}
+                               for result, github_url in processed_results if github_url is not None})
+        index += 1
+
+    with open("test_zenodo_results.json", "w") as test_out:
+        json.dump(output_results, test_out)
+
+    return output_results
+
 # Function runs all the required components of the cli on a given document file
 def run_cli_document(doc_src, threshold, output):
     return run_cli(threshold=threshold, output=output, doc_src=doc_src)
@@ -374,21 +428,44 @@ def run_cli(*,
             repo_url=None,
             doc_src=None,
             in_file=None,
+            zenodo_queries=None,
             output=None,
             graph_out=None,
             graph_format="turtle",
             ):
-    multiple_repos = in_file is not None
-    if multiple_repos:
+    multiple_repos = in_file is not None or zenodo_queries is not None
+    if in_file is not None:
         with open(in_file, "r") as in_handle:
             # get the line (with the final newline omitted) if the line is not empty
-            repo_list = [line[:-1] for line in in_handle if len(line) > 1]
+            repo_set = {line[:-1] for line in in_handle if len(line) > 1}
 
         # convert to a set to ensure uniqueness (we don't want to get the same data multiple times)
-        repo_set = set(repo_list)
-
         repo_data = [cli_get_data(threshold, repo_url=repo_url) for repo_url in repo_set]
+    elif zenodo_queries is not None:
+        with open(zenodo_queries, "r") as in_handle:
+            # get all of the queries
+            queries = {line[:-1] for line in in_handle if len(line) > 1}
+            # get the data from zenodo for each
+            data_and_urls = (get_zenodo_data(query) for query in queries)
+            # flatten it all into one object and use a dict to guarantee uniqueness
+            data_and_urls_flattened = {key: value for data_out in data_and_urls
+                                       for key, value in data_out.items()}
 
+            # make sure that the github urls are all unique, too
+            github_urls = {data["github_url"] for data in data_and_urls_flattened.values()}
+            # get the data from the cli
+            cli_data = {github_url: cli_get_data(threshold, repo_url=github_url) for github_url in github_urls}
+
+            # create the data object, with original data and zenodo data added
+            repo_data = [{
+                             **cli_data[data["github_url"]],
+                             "zenodo_data": [{
+                                 "excerpt": data["zenodo_data"],
+                                 "confidence": 1,
+                                 "technique": "metadata"
+                             }]
+                         }
+                         for key, data in data_and_urls_flattened.items()]
     else:
         if repo_url:
             repo_data = cli_get_data(threshold, repo_url=repo_url)

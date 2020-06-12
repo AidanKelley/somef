@@ -19,13 +19,23 @@ def trycli():
 
 @trycli.command(help="Configure credentials")
 def configure():
+    current_config_exists = configuration.get_config() is not None
     authorization = click.prompt("Authorization",default="")
-    description = click.prompt("Documentation model file", default=configuration.default_description)
-    invocation = click.prompt("Invocation model file", default=configuration.default_invocation)
-    installation = click.prompt("Installation model file", default=configuration.default_installation)
-    citation = click.prompt("Citation model file", default=configuration.default_citation)
+    zenodo_auth = click.prompt("Zenodo Authorization",default="")
+    description = click.prompt("Documentation model file",
+                               default=configuration.default_description
+                               if not current_config_exists else "")
+    invocation = click.prompt("Invocation model file",
+                              default=configuration.default_invocation
+                              if not current_config_exists else "")
+    installation = click.prompt("Installation model file",
+                                default=configuration.default_installation
+                                if not current_config_exists else "")
+    citation = click.prompt("Citation model file",
+                            default=configuration.default_citation
+                            if not current_config_exists else "")
 
-    configuration.configure(authorization, description, invocation, installation, citation)
+    configuration.configure(authorization, zenodo_auth, description, invocation, installation, citation)
     click.secho(f"Success", fg="green")
 
 @trycli.command(help="Show somef version.")
@@ -63,6 +73,12 @@ class URLParamType(click.types.StringParamType):
     "-i",
     type=click.Path(exists=True),
     help="A file of newline separated links to GitHub repositories"
+)
+@optgroup.option(
+    "--zenodo_queries",
+    "-z",
+    type=click.Path(exists=True),
+    help="Path to a list of newline-separated Zenodo Queries"
 )
 @optgroup.group('Output', cls=RequiredAnyOptionGroup)
 @optgroup.option(
