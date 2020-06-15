@@ -12,92 +12,92 @@ software_schema = {
     "@class": "sd:Software",
     "@id": {
         "@format": "obj:Software/{name}",
-        "name": "fullName"
+        "name": ["fullName", "excerpt"]
     },
     # data from SoMEF
     "sd:description": [
         {
-            "@path": "description",
+            "@path": ["description", "excerpt"],
             "@type": "xsd:string"
         },
         {
-            "@path": "issues",
+            "@path": ["issues", "excerpt"],
             "@type": "xsd:string"
         }
     ],
     "sd:citation": {
-        "@path": "citation",
+        "@path": ["citation", "excerpt"],
         "@type": "xsd:string"
     },
     "sd:hasInstallInstructions": {
-        "@path": "installation",
+        "@path": ["installation", "excerpt"],
         "@type": "xsd:string"
     },
     "sd:hasExecutionCommand": [
         {
-            "@path": "run",
+            "@path": ["run", "excerpt"],
             "@type": "xsd:string"
         },
         {
-            "@path": "invocation",
+            "@path": ["invocation", "excerpt"],
             "@type": "xsd:string"
         }
     ],
     "sd:hasUsageNotes": {
-        "@path": "usage",
+        "@path": ["usage", "excerpt"],
         "@type": "xsd:string"
     },
     "sd:downloadUrl": [
         {
-            "@path": "downloadUrl",
+            "@path": ["downloadUrl", "excerpt"],
             "@type": "xsd:anyURI"
         },
         {
-            "@path": "download",
+            "@path": ["download", "excerpt"],
             "@type": "xsd:string"
         }
     ],
     "sd:softwareRequirements": {
-        "@path": "requirement",
+        "@path": ["requirement", "excerpt"],
         "@type": "xsd:string"
     },
     "sd:contactDetails": {
-        "@path": "contact",
+        "@path": ["contact", "excerpt"],
         "@type": "xsd:string"
     },
     "sd:contributionInstructions": {
-        "@path": "contributor",
+        "@path": ["contributor", "excerpt"],
         "@type": "xsd:string"
     },
     # issues was moved in with sd:description
     "sd:supportDetails": {
-        "@path": "support",
+        "@path": ["support", "excerpt"],
         "@type": "xsd:string"
     },
     "sd:name": {
-        "@path": "fullName",
+        "@path": ["fullName", "excerpt"],
         "@type": "xsd:string"
     },
     "sd:license": {
-        "@path": ["license", "url"],
+        "@path": ["license", "excerpt", "url"],
         "@type": "xsd:anyURI"
     },
     "sd:keywords": {
-        "@path": "topics",
+        "@path": ["topics", "excerpt"],
         "@type": "xsd:string"
     },
     "sd:hasSourceCode": {
         "@class": "sd:SoftwareSource",
         "@id": {
             "@format": "obj:SoftwareSource/{name}",
-            "name": "fullName"
+            "name": ["fullName", "excerpt"]
         },
         "sd:codeRepository": {
-            "@path": "codeRepository",
+            "@path": ["codeRepository", "excerpt"],
             "@type": "xsd:anyURI"
         },
         "sd:programmingLanguage": {
-            "@path": "languages",
+            "@path": ["languages", "excerpt"],
             "@type": "xsd:string"
         }
     },
@@ -105,10 +105,10 @@ software_schema = {
         "@class": "schema:Person",
         "@id": {
             "@format": "obj:Person/{name}",
-            "name": "owner"
+            "name": ["owner", "excerpt"]
         },
         "sd:additionalName": {
-            "@path": "owner",
+            "@path": ["owner", "excerpt"],
             "@type": "schema:Text"
         }
     },
@@ -116,39 +116,39 @@ software_schema = {
         "@class": "sd:SoftwareVersion",
         "@id": {
             "@format": "obj:SoftwareVersion/{name}/{tag_name}",
-            "tag_name": ["releases", "tag_name"],
-            "name": "fullName"
+            "tag_name": ["releases", "excerpt", "tag_name"],
+            "name": ["fullName", "excerpt"]
         },
         # "sd:author": {
         #     "@class": "schema:Person",
         #     "@id": {
         #         "@format": "obj:Person/{name}",
-        #         "name": ["releases", "author_name"]
+        #         "name": ["releases", "excerpt", "author_name"]
         #     },
         #     "sd:additionalName": {
-        #         "@path": ["releases", "author_name"],
+        #         "@path": ["releases", "excerpt", "author_name"],
         #         "@type": "xsd:string"
         #     }
         # },
         "sd:hasVersionId": {
-            "@path": ["releases", "tag_name"],
+            "@path": ["releases", "excerpt", "tag_name"],
             "@type": "xsd:string"
         },
         "sd:description": {
-            "@path": ["releases", "body"],
+            "@path": ["releases", "excerpt", "body"],
             "@type": "xsd:string"
         },
         "sd:downloadUrl": [
             {
-                "@path": ["releases", "tarball_url"],
+                "@path": ["releases", "excerpt", "tarball_url"],
                 "@type": "xsd:anyURI"
             },
             {
-                "@path": ["releases", "zipball_url"],
+                "@path": ["releases", "excerpt", "zipball_url"],
                 "@type": "xsd:anyURI"
             },
             {
-                "@path": ["releases", "html_url"],
+                "@path": ["releases", "excerpt", "html_url"],
                 "@type": "xsd:anyURI"
             }
         ]

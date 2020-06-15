@@ -16,12 +16,12 @@ class DataGraph:
 
     def add_somef_data(self, somef_data):
         # process the somef output into data
-        data = DataGraph.process_somef(somef_data)
+        # data = DataGraph.process_somef(somef_data)
         # add the prefixes that we use in the software_schema
         self.prefixes.update(software_prefixes)
         self.bind_prefixes(software_prefixes)
         # add the data to the graph, using the software_schema
-        self.data_to_graph(data, software_schema)
+        self.data_to_graph(somef_data, software_schema)
 
     # discard the excerpt and confidence stuff
     @staticmethod
