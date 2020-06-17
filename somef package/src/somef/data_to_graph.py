@@ -23,21 +23,6 @@ class DataGraph:
         # add the data to the graph, using the software_schema
         self.data_to_graph(somef_data, software_schema)
 
-    # discard the excerpt and confidence stuff
-    @staticmethod
-    def process_somef(data):
-        out = {}
-        for key, value in data.items():
-            # if the value is a list, preserve the list
-            if isinstance(value, list) or isinstance(value, tuple):
-                if len(value) > 0:
-                    out[key] = [obj["excerpt"] for obj in value]
-            # if it is not a list, just get the excerpt
-            else:
-                out[key] = value["excerpt"]
-
-        return out
-
     @staticmethod
     def is_array(value):
         return isinstance(value, tuple) or isinstance(value, list)
